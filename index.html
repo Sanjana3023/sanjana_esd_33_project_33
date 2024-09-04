@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Platform</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #FA8D8D, #A890FE);
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        .hero {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 50px;
+            text-align: center;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 3rem;
+        }
+        .container {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .table thead {
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+        .btn-primary {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #000000;
+        }
+        .btn-warning {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: #ffffff;
+        }
+        .btn-warning:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #000000;
+        }
+        .btn-danger {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #000000;
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        input, select, textarea {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <a class="navbar-brand" href="#">Booking Platform</a>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="login-link">Login</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="register-link">Register</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="logout-link">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container hero">
+    <h1>Book Your Facility</h1>
+</div>
+
+<div class="container">
+    <h2 class="text-center">Create or Update Booking</h2>
+    <form id="bookingForm">
+        <input type="hidden" id="bookingID"> <!-- Hidden input to store booking ID -->
+        <div class="form-group">
+            <label for="facilityDescription">Facility Description</label>
+            <input type="text" class="form-control" id="facilityDescription" required>
+        </div>
+        <div class="form-group">
+            <label for="bookingDateFrom">Booking Date From</label>
+            <input type="date" class="form-control" id="bookingDateFrom" required>
+        </div>
+        <div class="form-group">
+            <label for="bookingDateTo">Booking Date To</label>
+            <input type="date" class="form-control" id="bookingDateTo" required>
+        </div>
+        <div class="form-group">
+            <label for="bookedBy">Booked By</label>
+            <input type="text" class="form-control" id="bookedBy" required>
+        </div>
+        <div class="form-group">
+            <label for="bookingStatus">Booking Status</label>
+            <input type="text" class="form-control" id="bookingStatus" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Submit Booking</button>
+    </form>
+
+    <h2 class="text-center mt-5">Bookings List</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Facility Description</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Booked By</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="bookingsTableBody">
+            <!-- Booking rows will be dynamically generated here -->
+        </tbody>
+    </table>
+</div>
+
+<footer>
+    <p>&copy; 2024 Your Booking Platform. All Rights Reserved.</p>
+</footer>
+
+<script>
+    const apiUrl = 'https://localhost:7092/api/Booking'; // Updated API URL
+
+    document.getElementById('bookingForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const bookingID = document.getElementById('bookingID').value;
+    const booking = {
+        FacilityDescription: document.getElementById('facilityDescription').value,
+        BookingDateFrom: document.getElementById('bookingDateFrom').value,
+        BookingDateTo: document.getElementById('bookingDateTo').value,
+        BookedBy: document.getElementById('bookedBy').value,
+        BookingStatus: document.getElementById('bookingStatus').value
+    };
+
+    if (bookingID) {
+        // Update existing booking
+        fetch(`${apiUrl}?id=${bookingID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ ...booking, BookingID: bookingID }) // Include BookingID only in update
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Booking updated successfully!');
+                loadBookings();
+                resetForm();
+            } else {
+                response.text().then(text => {
+                    console.error('Failed to update booking:', text);
+                    alert(`Failed to update booking: ${text}`);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`Error occurred: ${error.message}`);
+        });
+    } else {
+        // Create new booking
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(booking)  // Do not include BookingID for new bookings
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Booking created successfully!');
+                loadBookings();
+                resetForm();
+            } else {
+                response.text().then(text => {
+                    console.error('Failed to create booking:', text);
+                    alert(`Failed to create booking: ${text}`);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`Error occurred: ${error.message}`);
+        });
+    }
+});
+
+    function loadBookings() {
+    fetch(apiUrl, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();  // Use text() instead of json() to get raw response
+    })
+    .then(text => {
+        const data = text ? JSON.parse(text) : [];  // Safely parse the text, default to an empty array
+        const tableBody = document.getElementById('bookingsTableBody');
+        tableBody.innerHTML = '';
+        data.forEach(booking => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${booking.bookingID}</td>
+                <td>${booking.facilityDescription}</td>
+                <td>${booking.bookingDateFrom}</td>
+                <td>${booking.bookingDateTo}</td>
+                <td>${booking.bookedBy}</td>
+                <td>${booking.bookingStatus}</td>
+                <td>
+                    <button class="btn btn-warning" onclick="editBooking(${booking.bookingID})">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteBooking(${booking.bookingID})">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(`Error occurred: ${error.message}`);
+    });
+}
+
+
+    function deleteBooking(bookingID) {
+        fetch(`${apiUrl}?id=${bookingID}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Booking deleted successfully!');
+                loadBookings();
+            } else {
+                response.text().then(text => {
+                    console.error('Failed to delete booking:', text);
+                    alert(`Failed to delete booking: ${text}`);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`Error occurred: ${error.message}`);
+        });
+    }
+
+    function editBooking(bookingID) {
+        fetch(`${apiUrl}/${bookingID}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('bookingID').value = data.bookingID;
+            document.getElementById('facilityDescription').value = data.facilityDescription;
+            document.getElementById('bookingDateFrom').value = data.bookingDateFrom;
+            document.getElementById('bookingDateTo').value = data.bookingDateTo;
+            document.getElementById('bookedBy').value = data.bookedBy;
+            document.getElementById('bookingStatus').value = data.bookingStatus;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function resetForm() {
+        document.getElementById('bookingID').value = '';
+        document.getElementById('bookingForm').reset();
+    }
+
+    function login(username, password) {
+        fetch('https://localhost:7092/api/Authenticate/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                alert('Login successful!');
+                loadBookings();
+            } else {
+                alert('Login failed!');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function register(username, email, password, isAdmin = false) {
+        const endpoint = isAdmin ? 'register-admin' : 'register';
+        fetch(`https://localhost:7092/api/Authenticate/${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'Success') {
+                alert('Registration successful!');
+            } else {
+                alert('Registration failed: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    document.getElementById('login-link').addEventListener('click', function() {
+        const username = prompt('Enter your username:');
+        const password = prompt('Enter your password:');
+        if (username && password) {
+            login(username, password);
+        }
+    });
+
+    document.getElementById('register-link').addEventListener('click', function() {
+        const username = prompt('Enter your username:');
+        const email = prompt('Enter your email:');
+        const password = prompt('Enter your password:');
+        if (username && email && password) {
+            register(username, email, password);
+        }
+    });
+
+    document.getElementById('logout-link').addEventListener('click', function() {
+        localStorage.removeItem('token');
+        alert('You have been logged out.');
+        loadBookings(); // Refresh bookings to show no bookings if logged out
+    });
+
+    // Load bookings on page load
+    loadBookings();
+</script>
+
+</body>
+</html>
+
